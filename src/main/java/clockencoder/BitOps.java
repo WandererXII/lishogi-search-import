@@ -1,4 +1,4 @@
-package org.lichess.clockencoder;
+package org.lishogi.clockencoder;
 
 class BitOps {
     static int[] getBitMasks() {

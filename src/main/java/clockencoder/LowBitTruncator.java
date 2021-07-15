@@ -1,4 +1,4 @@
-package org.lichess.clockencoder;
+package org.lishogi.clockencoder;
 
 public class LowBitTruncator {
     // Truncate 3 bits from centisecs, but preserve precision for low values.
