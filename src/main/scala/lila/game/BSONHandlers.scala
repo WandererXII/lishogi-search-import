@@ -1,13 +1,21 @@
 package lila.game
 
-import chess.format.FEN
-import chess.variant.{ Crazyhouse, Variant }
-import chess.{ Black, CheckCount, Clock, Color, Mode, Status, UnmovedRooks, White }
+import shogi.format.{ FEN, Uci, Forsyth }
+import shogi.variant.Variant
+import shogi.{
+  CheckCount,
+  Clock,
+  Color,
+  Sente,
+  Gote,
+  Mode,
+  Status,
+}
 import org.joda.time.DateTime
 import reactivemongo.api.bson._
 import scala.util.{ Failure, Success, Try }
 
-import chess.Centis
+import shogi.Centis
 import lila.db.{ BSON, ByteArray }
 
 object BSONHandlers {
@@ -23,11 +31,6 @@ object BSONHandlers {
     x => BSONInteger(x.id)
   )
 
-  implicit private[game] val unmovedRooksHandler = tryHandler[UnmovedRooks](
-    { case bin: BSONBinary => ByteArrayBSONHandler.readTry(bin) map BinaryFormat.unmovedRooks.read },
-    x => ByteArrayBSONHandler.writeTry(BinaryFormat.unmovedRooks write x).get
-  )
-
   implicit val gameBSONHandler: BSON[Game] = new BSON[Game] {
 
     import Game.BSONFields._
@@ -37,9 +40,9 @@ object BSONHandlers {
 
     def reads(r: BSON.Reader): Game = {
       val winC               = r boolO winnerColor map Color.apply
-      val (whiteId, blackId) = r str playerIds splitAt 4
+      val (senteId, goteId) = r str playerIds splitAt 4
       val uids               = r.getO[List[String]](playerUids) getOrElse Nil
-      val (whiteUid, blackUid) =
+      val (senteUid, goteUid) =
         (uids.headOption.filter(_.nonEmpty), uids.lift(1).filter(_.nonEmpty))
       def player(
           field: String,
@@ -55,14 +58,14 @@ object BSONHandlers {
 
       val g = Game(
         id = r str id,
-        whitePlayer = player(whitePlayer, White, whiteId, whiteUid),
-        blackPlayer = player(blackPlayer, Black, blackId, blackUid),
+        sentePlayer = player(sentePlayer, Sente, senteId, senteUid),
+        gotePlayer = player(gotePlayer, Gote, goteId, goteUid),
         status = r.get[Status](status),
         turns = r int turns,
         startedAtTurn = r intD startedAtTurn,
         daysPerTurn = r intO daysPerTurn,
         mode = Mode(r boolD rated),
-        variant = Variant(r intD variant) | chess.variant.Standard,
+        variant = Variant(r intD variant) | shogi.variant.Standard,
         createdAt = r date createdAt,
         movedAt = r.dateD(movedAt, r date createdAt),
         metadata = Metadata(
@@ -75,8 +78,8 @@ object BSONHandlers {
       val gameClock = r.getO[Color => Clock](clock)(
         clockBSONReader(
           g.createdAt,
-          g.whitePlayer.berserk,
-          g.blackPlayer.berserk
+          g.sentePlayer.berserk,
+          g.gotePlayer.berserk
         )
       ) map (_(g.turnColor))
 
@@ -98,6 +101,11 @@ object BSONHandlers {
       def writes(w: BSON.Writer, o: Game.WithAnalysed) = ???
     }
 
+  private def periodEntries(color: Color, clockHistory: Option[ClockHistory]) =
+    for {
+      history <- clockHistory
+    } yield BinaryFormat.periodEntries.writeSide(history.periodEntries(color))
+
   private def clockHistory(
       color: Color,
       clockHistory: Option[ClockHistory],
@@ -114,13 +122,13 @@ object BSONHandlers {
       flagged contains color
     )
 
-  private[game] def clockBSONReader(since: DateTime, whiteBerserk: Boolean, blackBerserk: Boolean) =
+  private[game] def clockBSONReader(since: DateTime, senteBerserk: Boolean, goteBerserk: Boolean) =
     new BSONReader[Color => Clock] {
       def readTry(bson: BSONValue): Try[Color => Clock] =
         bson match {
           case bin: BSONBinary =>
             ByteArrayBSONHandler readTry bin map { cl =>
-              BinaryFormat.clock(since).read(cl, whiteBerserk, blackBerserk)
+              BinaryFormat.clock(since).read(cl, senteBerserk, goteBerserk)
             }
           case b => lila.db.BSON.handlerBadType(b)
         }

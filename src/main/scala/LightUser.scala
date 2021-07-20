@@ -1,8 +1,8 @@
-package lichess
+package lishogi
 
 case class LightUser(id: String, name: String, title: Option[String] = None)
 
-case class Users(white: LightUser, black: LightUser) {
+case class Users(sente: LightUser, gote: LightUser) {
 
-  def apply(color: chess.Color) = color.fold(white, black)
+  def apply(color: shogi.Color) = color.fold(sente, gote)
 }

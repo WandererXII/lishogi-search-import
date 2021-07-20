@@ -1,6 +1,6 @@
 package lila.game
 
-import chess.Color
+import shogi.Color
 
 case class Pov(game: Game, color: Color) {
 
@@ -38,10 +38,10 @@ object Pov {
 
   def apply(game: Game): List[Pov] = game.players.map { apply(game, _) }
 
-  def first(game: Game)  = apply(game, if (!game.variant.racingKings) game.firstPlayer else game.whitePlayer)
-  def second(game: Game) = apply(game, if (!game.variant.racingKings) game.secondPlayer else game.blackPlayer)
-  def white(game: Game)  = apply(game, game.whitePlayer)
-  def black(game: Game)  = apply(game, game.blackPlayer)
+  def first(game: Game)  = apply(game, game.firstPlayer)
+  def second(game: Game) = apply(game, game.secondPlayer)
+  def sente(game: Game)  = apply(game, game.sentePlayer)
+  def gote(game: Game)   = apply(game, game.gotePlayer)
   def player(game: Game) = apply(game, game.player)
 
   def apply(game: Game, player: Player) = new Pov(game, player.color)

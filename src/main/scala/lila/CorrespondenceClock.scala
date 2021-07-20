@@ -1,19 +1,19 @@
 package lila.game
 
-import chess.Color
+import shogi.Color
 
 // times are expressed in seconds
 case class CorrespondenceClock(
     increment: Int,
-    whiteTime: Float,
-    blackTime: Float
+    senteTime: Float,
+    goteTime: Float
 ) {
 
   def daysPerTurn = increment / 60 / 60 / 24
 
   def emerg = 60 * 10
 
-  def remainingTime(c: Color) = c.fold(whiteTime, blackTime)
+  def remainingTime(c: Color) = c.fold(senteTime, goteTime)
 
   def outoftime(c: Color) = remainingTime(c) == 0
 

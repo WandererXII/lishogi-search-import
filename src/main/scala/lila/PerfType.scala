@@ -1,8 +1,8 @@
 package lila.rating
 
-import chess.Centis
+import shogi.Centis
 
-import chess.Speed
+import shogi.Speed
 
 sealed abstract class PerfType(
     val id: Int,
@@ -75,81 +75,9 @@ object PerfType {
       extends PerfType(
         5,
         key = "standard",
-        name = chess.variant.Standard.name,
-        title = "Standard rules of chess",
+        name = shogi.variant.Standard.name,
+        title = "Standard rules of shogi",
         iconChar = '8'
-      )
-
-  case object Chess960
-      extends PerfType(
-        11,
-        key = "chess960",
-        name = chess.variant.Chess960.name,
-        title = "Chess960 variant",
-        iconChar = '\''
-      )
-
-  case object KingOfTheHill
-      extends PerfType(
-        12,
-        key = "kingOfTheHill",
-        name = chess.variant.KingOfTheHill.name,
-        title = "King of the Hill variant",
-        iconChar = '('
-      )
-
-  case object Antichess
-      extends PerfType(
-        13,
-        key = "antichess",
-        name = chess.variant.Antichess.name,
-        title = "Antichess variant",
-        iconChar = '@'
-      )
-
-  case object Atomic
-      extends PerfType(
-        14,
-        key = "atomic",
-        name = chess.variant.Atomic.name,
-        title = "Atomic variant",
-        iconChar = '>'
-      )
-
-  case object ThreeCheck
-      extends PerfType(
-        15,
-        key = "threeCheck",
-        name = chess.variant.ThreeCheck.name,
-        title = "Three-check variant",
-        iconChar = '.'
-      )
-
-  case object Horde
-      extends PerfType(
-        16,
-        key = "horde",
-        name = chess.variant.Horde.name,
-        title = "Horde variant",
-        iconChar = '_'
-      )
-
-  case object RacingKings
-      extends PerfType(
-        17,
-        key = "racingKings",
-        name = chess.variant.RacingKings.name,
-        title = "Racing kings variant",
-        iconChar = ''
-      )
-
-  case object Crazyhouse
-      extends PerfType(
-        18,
-        key = "crazyhouse",
-        name = chess.variant.Crazyhouse.name,
-        title = "Crazyhouse variant",
-        iconChar = ''
       )
 
   case object Puzzle
@@ -169,14 +97,6 @@ object PerfType {
     Classical,
     Correspondence,
     Standard,
-    Crazyhouse,
-    Chess960,
-    KingOfTheHill,
-    ThreeCheck,
-    Antichess,
-    Atomic,
-    Horde,
-    RacingKings,
     Puzzle
   )
   val byKey = all.map { p => (p.key, p) }.toMap
@@ -199,15 +119,7 @@ object PerfType {
     Blitz,
     Rapid,
     Classical,
-    Correspondence,
-    Crazyhouse,
-    Chess960,
-    KingOfTheHill,
-    ThreeCheck,
-    Antichess,
-    Atomic,
-    Horde,
-    RacingKings
+    Correspondence
   )
   val nonGame: List[PerfType] = List(Puzzle)
   val leaderboardable: List[PerfType] = List(
@@ -215,26 +127,10 @@ object PerfType {
     Blitz,
     Rapid,
     Classical,
-    UltraBullet,
-    Crazyhouse,
-    Chess960,
-    KingOfTheHill,
-    ThreeCheck,
-    Antichess,
-    Atomic,
-    Horde,
-    RacingKings
+    UltraBullet
   )
-  val variants: List[PerfType] = List(
-    Crazyhouse,
-    Chess960,
-    KingOfTheHill,
-    ThreeCheck,
-    Antichess,
-    Atomic,
-    Horde,
-    RacingKings
-  )
+  val variants: List[PerfType] = List()
+
   val standard: List[PerfType] =
     List(Bullet, Blitz, Rapid, Classical, Correspondence)
 
@@ -244,29 +140,13 @@ object PerfType {
     pt.name -> pt.iconString
   }.toMap
 
-  def variantOf(pt: PerfType): chess.variant.Variant =
+  def variantOf(pt: PerfType): shogi.variant.Variant =
     pt match {
-      case Crazyhouse    => chess.variant.Crazyhouse
-      case Chess960      => chess.variant.Chess960
-      case KingOfTheHill => chess.variant.KingOfTheHill
-      case ThreeCheck    => chess.variant.ThreeCheck
-      case Antichess     => chess.variant.Antichess
-      case Atomic        => chess.variant.Atomic
-      case Horde         => chess.variant.Horde
-      case RacingKings   => chess.variant.RacingKings
-      case _             => chess.variant.Standard
+      case _             => shogi.variant.Standard
     }
 
-  def byVariant(variant: chess.variant.Variant): Option[PerfType] =
+  def byVariant(variant: shogi.variant.Variant): Option[PerfType] =
     variant match {
-      case chess.variant.Crazyhouse    => Some(Crazyhouse)
-      case chess.variant.Chess960      => Some(Chess960)
-      case chess.variant.KingOfTheHill => Some(KingOfTheHill)
-      case chess.variant.ThreeCheck    => Some(ThreeCheck)
-      case chess.variant.Antichess     => Some(Antichess)
-      case chess.variant.Atomic        => Some(Atomic)
-      case chess.variant.Horde         => Some(Horde)
-      case chess.variant.RacingKings   => Some(RacingKings)
       case _                           => None
     }
 
@@ -282,6 +162,6 @@ object PerfType {
     })
   }.toMap
 
-  def iconByVariant(variant: chess.variant.Variant): Char =
+  def iconByVariant(variant: shogi.variant.Variant): Char =
     byVariant(variant).fold('C')(_.iconChar)
 }

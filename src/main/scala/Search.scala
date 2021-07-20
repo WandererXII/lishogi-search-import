@@ -1,4 +1,4 @@
-package lichess
+package lishogi
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -27,9 +27,10 @@ final class Search(wsClient: StandaloneAhcWSClient, endpoint: String)(implicit e
     val duration      = "l"
     val clockInit     = "ct"
     val clockInc      = "ci"
+    val clockByo      = "cb"
     val analysed      = "n"
-    val whiteUser     = "wu"
-    val blackUser     = "bu"
+    val senteUser     = "su"
+    val goteUser      = "gu"
     val source        = "so"
   }
 
@@ -43,8 +44,8 @@ final class Search(wsClient: StandaloneAhcWSClient, endpoint: String)(implicit e
     NoNull {
       Json.obj(
         Fields.status -> (game.status match {
-          case s if s.is(_.Timeout) => chess.Status.Resign
-          case s if s.is(_.NoStart) => chess.Status.Resign
+          case s if s.is(_.Timeout) => shogi.Status.Resign
+          case s if s.is(_.NoStart) => shogi.Status.Resign
           case s                    => game.status
         }).id,
         Fields.turns         -> math.ceil(game.turns.toFloat / 2),
@@ -60,9 +61,10 @@ final class Search(wsClient: StandaloneAhcWSClient, endpoint: String)(implicit e
         Fields.duration      -> game.durationSeconds,
         Fields.clockInit     -> game.clock.map(_.limitSeconds),
         Fields.clockInc      -> game.clock.map(_.incrementSeconds),
+        Fields.clockByo      -> game.clock.map(_.byoyomiSeconds),
         Fields.analysed      -> analysed,
-        Fields.whiteUser     -> game.whitePlayer.userId,
-        Fields.blackUser     -> game.blackPlayer.userId,
+        Fields.senteUser     -> game.sentePlayer.userId,
+        Fields.goteUser      -> game.gotePlayer.userId,
         Fields.source        -> game.source.map(_.id)
       )
     }

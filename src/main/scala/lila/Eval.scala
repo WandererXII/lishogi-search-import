@@ -1,11 +1,11 @@
 package lila.tree
 
-import chess.format.Uci
+import shogi.format.Uci
 
 case class Eval(
     cp: Option[Eval.Cp],
     mate: Option[Eval.Mate],
-    best: Option[Uci.Move]
+    best: Option[Uci]
 ) {
 
   def isEmpty = cp.isEmpty && mate.isEmpty
@@ -59,9 +59,9 @@ object Eval {
 
   object Cp {
 
-    val CEILING = 1000
+    val CEILING = 5500
 
-    val initial = Cp(15)
+    val initial = Cp(50)
   }
 
   case class Mate(value: Int) extends AnyVal with Ordered[Mate] {

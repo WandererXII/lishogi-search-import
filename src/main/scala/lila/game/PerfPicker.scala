@@ -1,11 +1,11 @@
 package lila.game
 
-import chess.Speed
+import shogi.Speed
 import lila.rating.PerfType
 
 object PerfPicker {
 
-  def key(speed: Speed, variant: chess.variant.Variant, daysPerTurn: Option[Int]): String =
+  def key(speed: Speed, variant: shogi.variant.Variant, daysPerTurn: Option[Int]): String =
     if (variant.standard) {
       if (daysPerTurn.isDefined || speed == Speed.Correspondence) PerfType.Correspondence.key
       else speed.key

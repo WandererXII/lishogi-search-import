@@ -1,4 +1,4 @@
-package lichess
+package lishogi
 
 import akka.stream._
 import akka.stream.scaladsl._

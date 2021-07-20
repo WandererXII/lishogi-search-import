@@ -1,4 +1,4 @@
-package lichess
+package lishogi
 
 import com.typesafe.config.ConfigFactory
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -36,7 +36,7 @@ final class DB(val gameColl: BSONCollection, val analysisColl: BSONCollection, v
           p.userId.fold(LightUser("?", "?")) { uid =>
             users.find(_.id == uid) getOrElse LightUser(uid, uid)
           }
-        Users(of(g.whitePlayer), of(g.blackPlayer))
+        Users(of(g.sentePlayer), of(g.gotePlayer))
       }
 }
 
@@ -45,7 +45,7 @@ object DB {
   private val config = ConfigFactory.load()
   private val dbUri  = config.getString("db.uri")
 
-  val dbName   = "lichess"
+  val dbName   = "lishogi"
   val collName = "game5"
 
   val driver = new reactivemongo.api.AsyncDriver

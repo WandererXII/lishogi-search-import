@@ -4,12 +4,12 @@ import org.joda.time.DateTime
 import scala.collection.Searching._
 import scala.util.Try
 
-import chess._
-import chess.variant.Variant
+import shogi._
+import shogi.variant.Variant
 
 import lila.db.ByteArray
 
-import org.lichess.clockencoder.{ Encoder => ClockEncoder }
+import org.lishogi.clockencoder.{ Encoder => ClockEncoder }
 
 object BinaryFormat {
 
@@ -34,11 +34,12 @@ object BinaryFormat {
       if (flagged) decoded :+ Centis(0) else decoded
     }
 
-    def read(start: Centis, bw: ByteArray, bb: ByteArray, flagged: Option[Color], gameId: String) =
+    def read(start: Centis, bw: ByteArray, bb: ByteArray, pe: PeriodEntries, flagged: Option[Color],  gameId: String) =
       Try {
         ClockHistory(
-          readSide(start, bw, flagged contains White),
-          readSide(start, bb, flagged contains Black)
+          readSide(start, bw, flagged contains Sente),
+          readSide(start, bb, flagged contains Gote),
+          pe
         )
       }.fold(
         e => { println(s"Exception decoding history on game $gameId", e); none },
@@ -79,15 +80,9 @@ object BinaryFormat {
     def computeRemaining(config: Clock.Config, legacyElapsed: Centis) =
       config.limit - legacyElapsed
 
-    // TODO: new binary clock format
-    // - clock history
-    // - berserk bits
-    // - "real" elapsed
-    // - lag stats
-
     def write(clock: Clock): ByteArray = ???
 
-    def read(ba: ByteArray, whiteBerserk: Boolean, blackBerserk: Boolean): Color => Clock =
+    def read(ba: ByteArray, senteBerserk: Boolean, goteBerserk: Boolean): Color => Clock =
       color => {
         val ia = ba.value map toInt
 
@@ -95,27 +90,39 @@ object BinaryFormat {
         // ba.size might be 8 if there was no timer.
         // #TODO remove 5 byte timer case! But fix the DB first!
         val timer = {
-          if (ia.size == 12) readTimer(readInt(ia(8), ia(9), ia(10), ia(11)))
+          if (ia.size >= 12) readTimer(readInt(ia(8), ia(9), ia(10), ia(11)))
           else None
+        }
+
+        val byo = {
+          if (ia.size == 14) ia(12)
+          else if (ia.size == 10) ia(8)
+          else 0
+        }
+
+        val per = {
+          if (ia.size == 14) ia(13)
+          else if (ia.size == 10) ia(9)
+          else 1
         }
 
         ia match {
           case Array(b1, b2, b3, b4, b5, b6, b7, b8, _*) => {
-            val config      = Clock.Config(readClockLimit(b1), b2)
-            val legacyWhite = Centis(readSignedInt24(b3, b4, b5))
-            val legacyBlack = Centis(readSignedInt24(b6, b7, b8))
+            val config      = Clock.Config(readClockLimit(b1), b2, byo, per)
+            val legacySente = Centis(readSignedInt24(b3, b4, b5))
+            val legacyGote  = Centis(readSignedInt24(b6, b7, b8))
             Clock(
               config = config,
               color = color,
               players = Color.Map(
                 ClockPlayer
                   .withConfig(config)
-                  .copy(berserk = whiteBerserk)
-                  .setRemaining(computeRemaining(config, legacyWhite)),
+                  .copy(berserk = senteBerserk)
+                  .setRemaining(computeRemaining(config, legacySente)),
                 ClockPlayer
                   .withConfig(config)
-                  .copy(berserk = blackBerserk)
-                  .setRemaining(computeRemaining(config, legacyBlack))
+                  .copy(berserk = goteBerserk)
+                  .setRemaining(computeRemaining(config, legacyGote))
               ),
               timer = timer
             )
@@ -159,108 +166,84 @@ object BinaryFormat {
     def apply(start: DateTime) = new clock(Timestamp(start.getMillis))
   }
 
-  object castleLastMove {
+  object periodEntries {
 
-    def write(clmt: CastleLastMove): ByteArray = ???
+    def writeSide(v: Vector[Int]): ByteArray = ???
 
-    def read(ba: ByteArray): CastleLastMove = {
-      val ints = ba.value map toInt
-      val size = ints.size
-
-      if (size < 2 || size > 6) sys error s"BinaryFormat.clmt.read invalid: ${ba.showBytes}"
-      val checkByte = if (size == 6 || size == 3) ints.lastOption else None
-
-      doRead(ints(0), ints(1), checkByte)
+    def readSide(ba: ByteArray): Vector[Int] = {
+      def backToInt(b: Array[Byte]): Int =
+        b map toInt match {
+          case Array(b1, b2) => (b1 << 8) + b2
+          case _             => 0
+        }
+      val pairs = ba.value.grouped(2)
+      (pairs map (backToInt _)).toVector
     }
-
-    private def posAt(x: Int, y: Int) = Pos.posAt(x + 1, y + 1)
-
-    private def doRead(b1: Int, b2: Int, checkByte: Option[Int]) =
-      CastleLastMove(
-        castles = Castles(b1 > 127, (b1 & 64) != 0, (b1 & 32) != 0, (b1 & 16) != 0),
-        lastMove = for {
-          from <- posAt((b1 & 15) >> 1, ((b1 & 1) << 2) + (b2 >> 6))
-          to   <- posAt((b2 & 63) >> 3, b2 & 7)
-          if from != Pos.A1 || to != Pos.A1
-        } yield from -> to,
-        check = checkByte flatMap { x => posAt(x >> 3, x & 7) }
+    def read(bw: ByteArray, bb: ByteArray) =
+      Try {
+        PeriodEntries(readSide(bw), readSide(bb))
+      }.fold(
+        e => { println(s"Exception decoding period entries", e); none },
+        some
       )
   }
 
   object piece {
 
-    private val groupedPos = Pos.all
-      .grouped(2)
-      .collect {
-        case List(p1, p2) => (p1, p2)
-      }
-      .toArray
-
     def write(pieces: PieceMap): ByteArray = ???
 
     def read(ba: ByteArray, variant: Variant): PieceMap = {
-      def splitInts(b: Byte) = {
-        val int = b.toInt
-        Array(int >> 4, int & 0x0f)
-      }
+      def splitInts(b: Byte) = b.toInt
       def intPiece(int: Int): Option[Piece] =
-        intToRole(int & 7, variant) map { role => Piece(Color((int & 8) == 0), role) }
-      val pieceInts = ba.value flatMap splitInts
-      (Pos.all zip pieceInts).flatMap {
-        case (pos, int) => intPiece(int) map (pos -> _)
-      }.toMap
+        intToRole(int & 15, variant) map { role =>
+          Piece(Color((int & 16) == 0), role)
+        }
+      val pieceInts = ba.value map splitInts
+      (Pos.all zip pieceInts).view
+        .flatMap { case (pos, int) =>
+          intPiece(int) map (pos -> _)
+        }
+        .to(Map)
     }
+
+    // cache standard start position
+    val standard = write(Board.init(shogi.variant.Standard).pieces)
 
     private def intToRole(int: Int, variant: Variant): Option[Role] =
       int match {
-        case 6 => Some(Pawn)
-        case 1 => Some(King)
-        case 2 => Some(Queen)
-        case 3 => Some(Rook)
-        case 4 => Some(Knight)
-        case 5 => Some(Bishop)
-        // Legacy from when we used to have an 'Antiking' piece
-        case 7 if variant.antichess => Some(King)
-        case _                      => None
+        case 1  => Some(King)
+        case 2  => Some(Gold)
+        case 3  => Some(Silver)
+        case 4  => Some(Knight)
+        case 5  => Some(Lance)
+        case 6  => Some(Bishop)
+        case 7  => Some(Rook)
+        case 8  => Some(Tokin)
+        case 9  => Some(PromotedLance)
+        case 10 => Some(PromotedKnight)
+        case 11 => Some(PromotedSilver)
+        case 12 => Some(Horse)
+        case 13 => Some(Dragon)
+        case 14 => Some(Pawn)
+        case _  => None
       }
     private def roleToInt(role: Role): Int =
       role match {
-        case Pawn   => 6
-        case King   => 1
-        case Queen  => 2
-        case Rook   => 3
-        case Knight => 4
-        case Bishop => 5
-      }
-  }
-
-  object unmovedRooks {
-
-    val emptyByteArray = ByteArray(Array(0, 0))
-
-    def write(o: UnmovedRooks): ByteArray = ???
-
-    private def bitAt(n: Int, k: Int) = (n >> k) & 1
-
-    private val arrIndexes = 0 to 1
-    private val bitIndexes = 0 to 7
-    private val whiteStd   = Set(Pos.A1, Pos.H1)
-    private val blackStd   = Set(Pos.A8, Pos.H8)
-
-    def read(ba: ByteArray) =
-      UnmovedRooks {
-        var set = Set.empty[Pos]
-        arrIndexes.foreach { i =>
-          val int = ba.value(i).toInt
-          if (int != 0) {
-            if (int == -127) set = if (i == 0) whiteStd else set ++ blackStd
-            else
-              bitIndexes.foreach { j =>
-                if (bitAt(int, j) == 1) set = set + Pos.posAt(8 - j, 1 + 7 * i).get
-              }
-          }
-        }
-        set
+        case King           => 1
+        case Gold           => 2
+        case Silver         => 3
+        case Knight         => 4
+        case Lance          => 5
+        case Bishop         => 6
+        case Rook           => 7
+        case Tokin          => 8
+        case PromotedLance  => 9
+        case PromotedKnight => 10
+        case PromotedSilver => 11
+        case Horse          => 12
+        case Dragon         => 13
+        case Pawn           => 14
+        case _              => 15
       }
   }
 

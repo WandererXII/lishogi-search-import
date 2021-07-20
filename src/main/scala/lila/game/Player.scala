@@ -1,6 +1,6 @@
 package lila.game
 
-import chess.Color
+import shogi.Color
 
 case class PlayerUser(id: String, rating: Int, ratingDiff: Option[Int])
 

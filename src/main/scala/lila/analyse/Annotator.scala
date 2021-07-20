@@ -1,8 +1,8 @@
 package lila
 package analyse
 
-import chess.format.pgn.{ Glyphs, Move, Pgn, Tag, Turn }
-import chess.{ Clock, Color, Status }
+import shogi.format.pgn.{ Glyphs, Move, Pgn, Tag, Turn }
+import shogi.{ Clock, Color, Status }
 
 object Annotator {
 

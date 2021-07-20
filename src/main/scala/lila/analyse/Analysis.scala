@@ -1,6 +1,6 @@
 package lila.analyse
 
-import chess.Color
+import shogi.Color
 
 import org.joda.time.DateTime
 
@@ -8,8 +8,8 @@ case class Analysis(
     id: String,
     infos: List[Info],
     startPly: Int,
-    uid: Option[String], // requester lichess ID
-    by: Option[String],  // analyser lichess ID
+    uid: Option[String], // requester lishogi ID
+    by: Option[String],  // analyser lishogi ID
     date: DateTime
 ) {
 
@@ -25,12 +25,6 @@ case class Analysis(
   }.toList
 
   lazy val advices: List[Advice] = infoAdvices.flatMap(_._2)
-
-  // ply -> UCI
-  def bestMoves: Map[Int, String] =
-    infos.view.flatMap { i =>
-      i.best map { b => i.ply -> b.keys }
-    }.toMap
 
   def summary: List[(Color, List[(Advice.Judgment, Int)])] =
     Color.all map { color =>

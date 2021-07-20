@@ -1,4 +1,4 @@
-package lichess
+package lishogi
 
 import akka.actor.ActorSystem
 import akka.stream._
@@ -17,8 +17,8 @@ import scala.concurrent._
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 
-import chess.variant.{ Horde, Standard, Variant }
-import lichess.DB.BSONDateTimeHandler
+import shogi.variant.{ Standard, Variant }
+import lishogi.DB.BSONDateTimeHandler
 import lila.game.BSONHandlers._
 import lila.game.{ Game }
 
@@ -51,7 +51,7 @@ object Main extends App {
     case _ =>
       println("Reset game index")
       Await.result(search.putMapping, 20.seconds)
-      parseDate("2011-01-01").get
+      parseDate("2020-01-01").get
   }
 
   /**
@@ -78,7 +78,7 @@ object Main extends App {
         .find(
           BSONDocument(
             "ca" -> BSONDocument("$gt" -> since),
-            "s"  -> BSONDocument("$gte" -> chess.Status.Mate.id)
+            "s"  -> BSONDocument("$gte" -> shogi.Status.Mate.id)
           ),
           Some(
             BSONDocument(
@@ -86,13 +86,13 @@ object Main extends App {
               Game.BSONFields.huffmanPgn        -> false,
               Game.BSONFields.binaryPieces      -> false,
               Game.BSONFields.moveTimes         -> false,
-              Game.BSONFields.whiteClockHistory -> false,
-              Game.BSONFields.blackClockHistory -> false
+              Game.BSONFields.senteClockHistory -> false,
+              Game.BSONFields.goteClockHistory  -> false
             )
           )
         )
         .sort(BSONDocument("ca" -> 1))
-        .cursor[Game.WithAnalysed](readPreference = ReadPreference.secondary)
+        .cursor[Game.WithAnalysed]()
         .documentSource(maxDocs = Int.MaxValue)
       // .documentSource(maxDocs = 100000)
 

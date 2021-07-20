@@ -1,8 +1,8 @@
 package lila
 package analyse
 
-import chess.Color
-import chess.format.Uci
+import shogi.Color
+import shogi.format.Uci
 
 import lila.tree.Eval
 
@@ -46,7 +46,7 @@ object Info {
 
   val LineMaxPlies = 14
 
-  private val separator     = ","
+  private val separator     = "@"
   private val listSeparator = ";"
 
   def start(ply: Int) = Info(ply, Eval.initial, Nil)
@@ -61,7 +61,7 @@ object Info {
       case Array(cp, ma)     => Some(Info(ply, Eval(strCp(cp), strMate(ma), None)))
       case Array(cp, ma, va) => Some(Info(ply, Eval(strCp(cp), strMate(ma), None), va.split(' ').toList))
       case Array(cp, ma, va, be) =>
-        Some(Info(ply, Eval(strCp(cp), strMate(ma), Uci.Move piotr be), va.split(' ').toList))
+        Some(Info(ply, Eval(strCp(cp), strMate(ma), Uci piotr be), va.split(' ').toList))
       case _ => None
     }
 
