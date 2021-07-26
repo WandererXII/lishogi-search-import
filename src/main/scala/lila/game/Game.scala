@@ -1,4 +1,4 @@
-package lila.game
+package lishogi.game
 
 import scala.concurrent.duration._
 
@@ -21,8 +21,8 @@ import shogi.{
 }
 import org.joda.time.DateTime
 
-import lila.common.Sequence
-import lila.db.ByteArray
+import lishogi.common.Sequence
+import lishogi.db.ByteArray
 
 case class Game(
     id: String,
@@ -96,7 +96,7 @@ case class Game(
   def speed = shogi.Speed(clock.map(_.config))
 
   def perfKey  = PerfPicker.key(this)
-  def perfType = lila.rating.PerfType(perfKey)
+  def perfType = lishogi.rating.PerfType(perfKey)
 
   def started = status >= Status.Started
 

@@ -7,7 +7,7 @@ import play.api.libs.ws._
 import play.api.libs.ws.ahc._
 import play.api.libs.ws.JsonBodyWritables._
 
-import lila.game._
+import lishogi.game._
 
 final class Search(wsClient: StandaloneAhcWSClient, endpoint: String)(implicit ec: ExecutionContext) {
 

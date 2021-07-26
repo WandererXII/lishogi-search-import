@@ -1,4 +1,4 @@
-package lila.rating
+package lishogi.rating
 
 import shogi.Centis
 

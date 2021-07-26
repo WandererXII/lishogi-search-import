@@ -19,8 +19,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 import shogi.variant.{ Standard, Variant }
 import lishogi.DB.BSONDateTimeHandler
-import lila.game.BSONHandlers._
-import lila.game.{ Game }
+import lishogi.game.BSONHandlers._
+import lishogi.game.{ Game }
 
 object Main extends App {
 

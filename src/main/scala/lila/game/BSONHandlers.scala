@@ -1,4 +1,4 @@
-package lila.game
+package lishogi.game
 
 import shogi.format.{ FEN, Uci, Forsyth }
 import shogi.variant.Variant
@@ -16,12 +16,12 @@ import reactivemongo.api.bson._
 import scala.util.{ Failure, Success, Try }
 
 import shogi.Centis
-import lila.db.{ BSON, ByteArray }
+import lishogi.db.{ BSON, ByteArray }
 
 object BSONHandlers {
 
-  import lila.db.ByteArray.ByteArrayBSONHandler
-  import lila.db.BSON._
+  import lishogi.db.ByteArray.ByteArrayBSONHandler
+  import lishogi.db.BSON._
 
   implicit val StatusBSONHandler = tryHandler[Status](
     {
@@ -130,7 +130,7 @@ object BSONHandlers {
             ByteArrayBSONHandler readTry bin map { cl =>
               BinaryFormat.clock(since).read(cl, senteBerserk, goteBerserk)
             }
-          case b => lila.db.BSON.handlerBadType(b)
+          case b => lishogi.db.BSON.handlerBadType(b)
         }
     }
 }

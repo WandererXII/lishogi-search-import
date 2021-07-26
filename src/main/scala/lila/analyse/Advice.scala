@@ -1,7 +1,7 @@
-package lila.analyse
+package lishogi.analyse
 
 import shogi.format.pgn.Glyph
-import lila.tree.Eval._
+import lishogi.tree.Eval._
 
 sealed trait Advice {
   def judgment: Advice.Judgment

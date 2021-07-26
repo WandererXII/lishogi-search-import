@@ -26,13 +26,13 @@ final class DB(val gameColl: BSONCollection, val analysisColl: BSONCollection, v
       }
   }
 
-  def users(g: lila.game.Game): Future[Users] =
+  def users(g: lishogi.game.Game): Future[Users] =
     userColl
       .find(BSONDocument("_id" -> BSONDocument("$in" -> g.userIds)), userProj)
       .cursor[LightUser]()
       .collect[List](Int.MaxValue, Cursor.ContOnError())
       .map { users =>
-        def of(p: lila.game.Player) =
+        def of(p: lishogi.game.Player) =
           p.userId.fold(LightUser("?", "?")) { uid =>
             users.find(_.id == uid) getOrElse LightUser(uid, uid)
           }

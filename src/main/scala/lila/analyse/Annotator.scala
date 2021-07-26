@@ -1,4 +1,4 @@
-package lila
+package lishogi
 package analyse
 
 import shogi.format.pgn.{ Glyphs, Move, Pgn, Tag, Turn }

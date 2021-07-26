@@ -1,10 +1,10 @@
-package lila
+package lishogi
 package analyse
 
 import shogi.Color
 import shogi.format.Uci
 
-import lila.tree.Eval
+import lishogi.tree.Eval
 
 case class Info(
     ply: Int,

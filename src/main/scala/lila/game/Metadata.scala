@@ -1,6 +1,6 @@
-package lila.game
+package lishogi.game
 
-import lila.db.ByteArray
+import lishogi.db.ByteArray
 import org.joda.time.DateTime
 
 private[game] case class Metadata(

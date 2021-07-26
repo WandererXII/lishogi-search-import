@@ -1,4 +1,4 @@
-package lila.analyse
+package lishogi.analyse
 
 import shogi.Color
 
@@ -43,7 +43,7 @@ case class Analysis(
 
 object Analysis {
 
-  import lila.db.BSON
+  import lishogi.db.BSON
   import reactivemongo.api.bson._
 
   type ID = String

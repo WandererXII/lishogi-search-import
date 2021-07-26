@@ -1,4 +1,4 @@
-package lila.game
+package lishogi.game
 
 import org.joda.time.DateTime
 import scala.collection.Searching._
@@ -7,7 +7,7 @@ import scala.util.Try
 import shogi._
 import shogi.variant.Variant
 
-import lila.db.ByteArray
+import lishogi.db.ByteArray
 
 import org.lishogi.clockencoder.{ Encoder => ClockEncoder }
 

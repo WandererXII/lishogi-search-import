@@ -5,7 +5,7 @@ import akka.stream.scaladsl._
 import akka.stream.stage._
 import scala.concurrent.duration._
 
-import lila.game.Game
+import lishogi.game.Game
 import org.joda.time.DateTime
 import org.joda.time.format._
 

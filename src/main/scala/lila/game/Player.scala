@@ -1,4 +1,4 @@
-package lila.game
+package lishogi.game
 
 import shogi.Color
 
@@ -60,7 +60,7 @@ object Player {
   }
 
   import reactivemongo.api.bson._
-  import lila.db.BSON
+  import lishogi.db.BSON
 
   type Id      = String
   type UserId  = Option[String]
